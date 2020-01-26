@@ -77,6 +77,46 @@ def login_article_list2():
 
     return jsonify(today_sale_list)
 
+@app.route('/category_list')
+def category_list():
+    db = 'bel-20200122'
+    username = 'developer@amarbay.com'
+    password = '12345678'
+    # print(username + ' pass ' + password)
+    params = {
+        'db': db,
+        'login': username,
+        'password': password
+    }
+    odoo_url = base_url + '/web/session/authenticate'
+    headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Content-Length': str(len(json.dumps(params)))
+    }
+
+    response = requests.post(url = odoo_url, data= json.dumps({'params': params}) , headers= headers)
+
+    print(response.json())
+    # dump(response)
+    res_data = response.json()
+    sessionId = res_data['result']['session_id']
+
+    url = base_url + '/ecom/category_list'
+    headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Cookie': 'session_id= %s'%sessionId
+    }
+
+    odooResponse = requests.post(url = url, data = json.dumps({'jsonrpc': '2.0', 'method': 'call', 'params': params}) , headers = headers)
+
+    article_data = odooResponse.json()
+    # print(today_sale_data)
+    article_list = json.loads(article_data['result'])
+
+    return jsonify(article_list)
+
 if __name__ == '__main__':
     app.config['DEBUG'] = True
     app.run(debug=True)
